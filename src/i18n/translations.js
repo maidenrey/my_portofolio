@@ -9,8 +9,6 @@ export const translations = {
     },
     kinetic: [
       "Hai! Saya Anam",
-      "Seorang Junior Web Designer",
-      "Dibangun dengan Dedikasi & Passion",
       "Selamat Datang di Website Saya!"
     ],
     hero: {
@@ -100,8 +98,6 @@ Berbekal pengalaman lebih dari 5 tahun di dunia pengembangan web, saya menguasai
     },
     kinetic: [
       "Hi! I'm Anam",
-      "A Junior Web Designer",
-      "Build with Dedication and Passion",
       "Welcome to My Website!"
     ],
     hero: {
@@ -144,7 +140,6 @@ Berbekal pengalaman lebih dari 5 tahun di dunia pengembangan web, saya menguasai
 With over 5 years of experience in web development, I master the **React**, **Vite**, **Three.js**, **GSAP**, and **Tailwind CSS** ecosystems. I believe modern websites should not only function flawlessly but also deliver an unforgettable visual experience to every visitor.`
     },
     skills: {
-      subtitle: "Technical Skills",
       title: "Tech Stack",
       desc: "A combination of modern frontend technology, interactive 3D graphics, and professional workflow tools.",
       allCategory: "All",

@@ -9,7 +9,7 @@ const GithubStats = memo(function GithubStats() {
   const { language } = useLanguage();
   const t = (key) => getTranslation(language, `github.${key}`);
 
-  const username = 'syafiqahmadannaufal9-bit';
+  const username = 'maidenrey';
   const [profileData, setProfileData] = useState(null);
 
   useEffect(() => {
@@ -62,7 +62,7 @@ const GithubStats = memo(function GithubStats() {
             </div>
             <div>
               <h4 className="text-xl sm:text-2xl font-black flex items-center gap-2">
-                {profileData?.name || 'Syafiq Ahmad Annaufal'}
+                {profileData?.name || 'Maiden Reyy as Anam'}
               </h4>
               <p className="text-xs sm:text-sm font-medium text-gray-600">
                 @{username}
