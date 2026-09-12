@@ -69,15 +69,18 @@ export default function KineticIntro() {
       /* Step 1 – Fade OUT first sentence + scroll hint on scroll */
       if (firstRef) {
         const firstWords = firstRef.querySelectorAll('.word');
-        tl.to(
+        tl.fromTo(
           firstWords,
-          { opacity: 0, y: -25, filter: 'blur(6px)', stagger: 0.04, ease: 'power2.in', duration: 0.5 }
+          { opacity: 1, y: 0, filter: 'blur(0px)' },
+          { opacity: 0, y: -25, filter: 'blur(6px)', stagger: 0.04, ease: 'power2.in', duration: 0.5 },
+          0
         );
       }
       if (scrollHintRef.current) {
-        tl.to(
+        tl.fromTo(
           scrollHintRef.current,
-          { opacity: 0, duration: 0.2, ease: 'power2.in' },
+          { opacity: 1, y: 0 },
+          { opacity: 0, y: -10, duration: 0.2, ease: 'power2.in' },
           0
         );
       }

@@ -3,7 +3,13 @@ import { StaggeredMenu } from './StaggeredMenu';
 import { useLanguage } from '../context/LanguageContext';
 import { getTranslation } from '../i18n/translations';
 
-const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+const scrollTo = (id) => {
+  if (id === 'home') {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  }
+};
 
 const Navbar = memo(function Navbar() {
   const menuRef = useRef(null);

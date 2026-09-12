@@ -239,8 +239,15 @@ function PorscheModel() {
       gsap.timeline({
         scrollTrigger: { trigger: '#about', start: 'top 70%', end: 'top 15%', scrub: true }
       })
-      .to(g.position, { x: 12, y: -0.2, z: 0, ease: 'power2.in' }, 0)
-      .to(g.rotation, { x: 0.05, y: Math.PI * -0.15, z: 0, ease: 'power2.in' }, 0);
+      .fromTo(g.position,
+        { x: 2.8, y: -0.2, z: 0 },
+        { x: 12, y: -0.2, z: 0, ease: 'power2.in', immediateRender: false }, 0)
+      .fromTo(g.rotation,
+        { x: 0.05, y: Math.PI * -0.35, z: 0 },
+        { x: 0.05, y: Math.PI * -0.15, z: 0, ease: 'power2.in', immediateRender: false }, 0)
+      .fromTo(g.scale,
+        { x: 7.5, y: 7.5, z: 7.5 },
+        { x: 7.5, y: 7.5, z: 7.5, ease: 'power2.in', immediateRender: false }, 0);
 
       // 3. Smooth transition: About exit → Skills entrance (Car enters and centers facing right)
       gsap.timeline({
