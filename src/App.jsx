@@ -25,6 +25,28 @@ const App = memo(function App() {
   const bar3LeftRef = useRef(null);
   const bar3RightRef = useRef(null);
 
+  const [isMobile, setIsMobile] = React.useState(
+    typeof window !== 'undefined' ? window.innerWidth <= 768 : false
+  );
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    // If mobile, directly go to About section on load
+    if (isMobile) {
+      setTimeout(() => {
+        const aboutEl = document.getElementById('about');
+        if (aboutEl) {
+          aboutEl.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 500);
+    }
+  }, [isMobile]);
+
   useEffect(() => {
     const lenis = new Lenis();
     lenis.on('scroll', ScrollTrigger.update);
@@ -89,7 +111,7 @@ const App = memo(function App() {
 
   return (
     <div className="min-h-screen font-sans relative bg-[#f8fafc] text-[#0f172a]">
-      <CarScene />
+      {!isMobile && <CarScene />}
       <Navbar />
       <KineticIntro />
 
