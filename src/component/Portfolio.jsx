@@ -9,7 +9,6 @@ const Portfolio = memo(function Portfolio() {
   const { language } = useLanguage();
   const t = (key) => getTranslation(language, `portfolio.${key}`);
 
-  const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [activeModalProject, setActiveModalProject] = useState(null);
 
   const rawProjectModules = import.meta.glob('../content/projects/*.md', {
@@ -19,11 +18,6 @@ const Portfolio = memo(function Portfolio() {
   });
 
   const projects = loadMarkdownCollection(rawProjectModules);
-  const rawCategories = [...new Set(projects.map(p => p.frontmatter.category).filter(Boolean))];
-
-  const filteredProjects = selectedCategory === 'ALL'
-    ? projects
-    : projects.filter(p => p.frontmatter.category === selectedCategory);
 
   return (
     <section
@@ -40,34 +34,8 @@ const Portfolio = memo(function Portfolio() {
           <div className="w-16 h-1 mx-auto mt-4 rounded-full bg-[#5227FF]" />
         </div>
 
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
-          <button
-            onClick={() => setSelectedCategory('ALL')}
-            className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all border backdrop-blur-md ${
-              selectedCategory === 'ALL'
-                ? 'bg-[#5227FF] text-white border-[#5227FF]'
-                : 'bg-white/80 text-gray-700 border-black/20 hover:border-[#5227FF] hover:text-[#5227FF]'
-            }`}
-          >
-            {t('allCategory')}
-          </button>
-          {rawCategories.map((cat, idx) => (
-            <button
-              key={idx}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all border backdrop-blur-md ${
-                selectedCategory === cat
-                  ? 'bg-[#5227FF] text-white border-[#5227FF]'
-                  : 'bg-white/80 text-gray-700 border-black/20 hover:border-[#5227FF] hover:text-[#5227FF]'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-20">
-          {filteredProjects.map((project) => {
+          {projects.map((project) => {
             const { title, summary, category, thumbnail, techStack } = project.frontmatter;
             return (
               <div
