@@ -73,11 +73,11 @@ const App = memo(function App() {
 
       // Bar 3 (Bottom) opens first — dinaikkan ke atas sedikit saat membuka
       curtainTl
-        .to(bar3LeftRef.current, { xPercent: -100, y: -28, ease: 'power2.inOut' }, 0)
-        .to(bar3RightRef.current, { xPercent: 100, y: -28, ease: 'power2.inOut' }, 0)
+        .to(bar3LeftRef.current, { xPercent: -102, y: -30, ease: 'power2.inOut' }, 0)
+        .to(bar3RightRef.current, { xPercent: 102, y: -30, ease: 'power2.inOut' }, 0)
         // Bar 2 (Middle) opens next
-        .to(bar2LeftRef.current, { xPercent: -100, ease: 'power2.inOut' }, 0.12)
-        .to(bar2RightRef.current, { xPercent: 100, ease: 'power2.inOut' }, 0.12)
+        .to(bar2LeftRef.current, { xPercent: -102, ease: 'power2.inOut' }, 0.12)
+        .to(bar2RightRef.current, { xPercent: 102, ease: 'power2.inOut' }, 0.12)
         // Bar 1 (Top) opens last
         .to(bar1LeftRef.current, { xPercent: -100, ease: 'power2.inOut' }, 0.24)
         .to(bar1RightRef.current, { xPercent: 100, ease: 'power2.inOut' }, 0.24);
