@@ -21,7 +21,7 @@ const ContactFooter = memo(function ContactFooter() {
   const shapesRef = useRef([]);
 
   const socialLinks = [
-    { name: 'Email', href: 'mailto:syafiqahmadannuafal9@gmail.com', icon: Mail, isMail: true },
+    { name: 'Email', href: 'mailto:reymonjkmaiden@gmail.com', icon: Mail, isMail: true },
     { name: 'LinkedIn', href: 'https://linkedin.com', icon: LinkedinIcon },
     { name: 'GitHub', href: 'https://github.com/syafiqahmadannaufal9-bit', icon: GithubIcon },
     { name: 'WhatsApp', href: 'https://wa.me/6282121825192', icon: MessageSquare },

@@ -48,7 +48,7 @@ export const translations = {
       ],
       markdownContent: `Saya adalah seorang **Frontend Developer** dan **Creative Technologist** dengan passion mendalam dalam membangun antarmuka web yang intuitif, cepat, dan memukau secara visual.
 
-Berbekal pengalaman lebih dari 5 tahun di dunia pengembangan web, saya menguasai ekosistem **React**, **Vite**, **Three.js**, **GSAP**, dan **Tailwind CSS**. Saya percaya bahwa website modern tidak hanya harus berfungsi secara sempurna, tetapi juga harus memberikan pengalaman visual yang mengagumkan bagi setiap pengunjung.`
+Berbekal pengalaman lebih dari 3 tahun di dunia pengembangan web, saya menguasai ekosistem **React**, **Vite**, **Three.js**, **GSAP**, dan **Tailwind CSS**. Saya percaya bahwa website modern tidak hanya harus berfungsi secara sempurna, tetapi juga harus memberikan pengalaman visual yang mengagumkan bagi setiap pengunjung.`
     },
     skills: {
       subtitle: "Kemampuan Teknis",

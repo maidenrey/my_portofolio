@@ -57,7 +57,7 @@ const App = memo(function App() {
       ScrollTrigger.create({
         trigger: '#about',
         start: 'top 50%',
-        end: 'bottom 50%',
+        end: 'bottom 60%',
         toggleClass: { targets: '.staggered-menu-wrapper', className: 'theme-white' },
       });
 
@@ -65,16 +65,16 @@ const App = memo(function App() {
       const curtainTl = gsap.timeline({
         scrollTrigger: {
           trigger: '#about',
-          start: 'bottom bottom',
+          start: 'bottom 82%',
           end: 'bottom top',
           scrub: true,
         }
       });
 
-      // Bar 3 (Bottom) opens first
+      // Bar 3 (Bottom) opens first — dinaikkan ke atas sedikit saat membuka
       curtainTl
-        .to(bar3LeftRef.current, { xPercent: -100, ease: 'power2.inOut' }, 0)
-        .to(bar3RightRef.current, { xPercent: 100, ease: 'power2.inOut' }, 0)
+        .to(bar3LeftRef.current, { xPercent: -100, y: -28, ease: 'power2.inOut' }, 0)
+        .to(bar3RightRef.current, { xPercent: 100, y: -28, ease: 'power2.inOut' }, 0)
         // Bar 2 (Middle) opens next
         .to(bar2LeftRef.current, { xPercent: -100, ease: 'power2.inOut' }, 0.12)
         .to(bar2RightRef.current, { xPercent: 100, ease: 'power2.inOut' }, 0.12)
