@@ -26,7 +26,7 @@ const SkillCard = styled.div`
   border: 1px solid rgba(139, 92, 246, 0.25);
   border-radius: 1.15rem;
   padding: 1.15rem 1.25rem;
-  width: 260px;
+  width: 100%;
   flex-shrink: 0;
   transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   box-shadow: 0 6px 20px -4px rgba(139, 92, 246, 0.12), 0 2px 6px -2px rgba(0, 0, 0, 0.04);
@@ -229,10 +229,10 @@ const Skills = memo(function Skills() {
       </div>
 
       {/* ─── Bottom Area: Benang Lurus & Poin-Poin Skill di Bawah Model Mobil ─── */}
-      <div className="absolute bottom-10 sm:bottom-12 md:bottom-14 left-0 right-0 z-20 pointer-events-auto overflow-hidden">
+      <div className="absolute top-44 md:top-auto md:bottom-14 left-0 right-0 z-20 pointer-events-auto md:overflow-hidden overflow-y-auto h-[calc(100vh-12rem)] md:h-auto pb-24 md:pb-0 px-4 md:px-0 hide-scrollbar">
         <div
           ref={trackRef}
-          className="flex flex-row items-end pl-8 md:pl-20 pr-48 will-change-transform pb-2 relative"
+          className="flex flex-col md:flex-row items-center md:items-end md:pl-20 md:pr-48 will-change-transform pb-2 relative gap-4 md:gap-0"
         >
           {/* Straight Purple Thread SVG Line (Lurus & Menyambung Solid Tidak Putus-Putus) */}
           <svg
@@ -280,7 +280,7 @@ const Skills = memo(function Skills() {
           </svg>
 
           {/* Skill Stations on the Straight Thread */}
-          <div className="flex flex-row items-start gap-10 md:gap-12 relative z-10">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-12 relative z-10 w-full md:w-auto pb-12 md:pb-0">
             {allSkills.map((skill, idx) => {
               const IconComp = ICON_MAP[skill.icon] || Code2;
               const showCategoryLabel =
@@ -289,11 +289,10 @@ const Skills = memo(function Skills() {
               return (
                 <div
                   key={idx}
-                  className="station-node-container flex flex-col items-center flex-shrink-0"
-                  style={{ width: '260px' }}
+                  className="station-node-container flex flex-col items-center flex-shrink-0 w-full sm:w-[320px] md:w-[260px]"
                 >
                   {/* Category / Number Label above node */}
-                  <div className="flex items-center justify-between w-full px-1 mb-1 text-[10px] font-bold h-5">
+                  <div className="hidden md:flex items-center justify-between w-full px-1 mb-1 text-[10px] font-bold h-5">
                     {showCategoryLabel ? (
                       <span className="text-purple-700 bg-purple-100/95 border border-purple-200/80 px-2 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap shadow-xs">
                         {skill.category}
@@ -307,7 +306,7 @@ const Skills = memo(function Skills() {
                   </div>
 
                   {/* Straight Thread Station Node Dot (Lurus sejajar garis) */}
-                  <div className="relative flex items-center justify-center h-9 w-full mb-3">
+                  <div className="hidden md:flex relative items-center justify-center h-9 w-full mb-3">
                     {/* Ping ripple effect when active */}
                     <span className="station-node-ping absolute w-7 h-7 rounded-full bg-purple-500/40 pointer-events-none" />
                     {/* Center Point: Starts dimmed, turns glowing purple when scrolled */}

@@ -118,7 +118,8 @@ const App = memo(function App() {
       {/* 3 Horizontal rectangular bars overlay — sliding to left & right in staggered sequence */}
       <div
         ref={curtainWrapRef}
-        className="fixed -inset-y-2 inset-x-0 z-[2] pointer-events-none opacity-0 flex flex-col overflow-hidden"
+        className="fixed inset-x-0 z-[2] pointer-events-none opacity-0 flex flex-col overflow-hidden"
+        style={{ top: '-64px', bottom: '-64px' }}
       >
         {/* Bar 1 (Top Bar) */}
         <div className="flex-1 w-full flex overflow-hidden">
