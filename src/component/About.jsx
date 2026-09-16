@@ -94,8 +94,8 @@ const About = memo(function About() {
               {/* PixelTrail canvas revealing Negative Photo through the cursor trail */}
               <div className="absolute inset-0 z-20 pointer-events-auto">
                 <PixelTrail
-                  gridSize={48}
-                  trailSize={0.16}
+                  gridSize={100}
+                  trailSize={0.12}
                   maxAge={450}
                   interpolate={6}
                   image={anamNegativePhoto}

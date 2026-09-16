@@ -96,7 +96,7 @@ const App = memo(function App() {
       {/* 3 Horizontal rectangular bars overlay — sliding to left & right in staggered sequence */}
       <div
         ref={curtainWrapRef}
-        className="fixed inset-0 z-[2] pointer-events-none opacity-0 flex flex-col overflow-hidden"
+        className="fixed -inset-y-2 inset-x-0 z-[2] pointer-events-none opacity-0 flex flex-col overflow-hidden"
       >
         {/* Bar 1 (Top Bar) */}
         <div className="flex-1 w-full flex overflow-hidden">
