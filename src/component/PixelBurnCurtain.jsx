@@ -154,23 +154,24 @@ const PixelBurnCurtain = memo(function PixelBurnCurtain() {
 
     // ── GSAP ScrollTrigger ─────────────────────────────────────────────────
     const ctxGsap = gsap.context(() => {
-      // Fade IN wrap saat mendekati bottom About (munculkan canvas)
+      // ── 1. FADE IN HITAM: Saat top #about masuk viewport (Hero → About)
+      //    Mengembalikan transisi background putih → hitam yang asli
       gsap.timeline({
         scrollTrigger: {
           trigger: '#about',
-          start: 'bottom 90%',   // mulai muncul sedikit sebelum bottom #about masuk viewport
-          end:   'bottom 65%',   // sudah fully opaque saat bottom #about di 65% viewport
+          start: 'top 65%',   // mulai fade saat top About di 65% viewport (sama seperti asli)
+          end:   'top 15%',   // hitam penuh saat top About di 15% viewport (sama seperti asli)
           scrub: true,
         }
-      }).fromTo(wrap, { opacity: 0 }, { opacity: 1, ease: 'none' });
+      }).fromTo(wrap, { opacity: 0 }, { opacity: 1, ease: 'power1.inOut' });
 
-      // Pixel burn progress: dari bottom About masuk viewport sampai keluar atas viewport
+      // ── 2. BURN: Pixel burn dari bawah ke atas saat scroll keluar bottom About
       const proxy = { val: 0 };
       gsap.timeline({
         scrollTrigger: {
           trigger: '#about',
-          start: 'bottom 80%',   // mulai burn saat bottom about di 80% viewport
-          end:   'bottom -5%',   // selesai burn saat bottom about sedikit di atas viewport
+          start: 'bottom 82%',   // sama seperti trigger curtain asli
+          end:   'bottom top',   // sampai bottom About keluar viewport
           scrub: 1.0,
           onUpdate: () => {
             progressRef.current = proxy.val;
@@ -179,7 +180,7 @@ const PixelBurnCurtain = memo(function PixelBurnCurtain() {
         }
       }).to(proxy, { val: 1, ease: 'none' });
 
-      // Fade OUT wrap setelah burn selesai (hapus layer saat masuk skills)
+      // ── 3. FADE OUT: Hilangkan layer saat sudah masuk section Skills
       gsap.timeline({
         scrollTrigger: {
           trigger: '#skills',
