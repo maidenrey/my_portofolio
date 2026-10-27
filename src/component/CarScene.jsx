@@ -204,30 +204,30 @@ function PorscheModel() {
     };
   }, [scene]);
 
-  // ── Shadow texture (lower res: 128 → saves texture memory) ──────────────────
+  // ── Shadow texture ────────────────────────────────────────────────────────────
   const shadowTexture = useMemo(() => {
     const canvas = document.createElement('canvas');
-    canvas.width = 128;
-    canvas.height = 128;
+    canvas.width = 256;
+    canvas.height = 256;
     const ctx = canvas.getContext('2d');
-    const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
     gradient.addColorStop(0, 'rgba(0,0,0,0.95)');
     gradient.addColorStop(0.3, 'rgba(0,0,0,0.7)');
     gradient.addColorStop(0.7, 'rgba(0,0,0,0.2)');
     gradient.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 128, 128);
+    ctx.fillRect(0, 0, 256, 256);
     return new THREE.CanvasTexture(canvas);
   }, []);
 
-  // ── Material optimizations ────────────────────────────────────────────────────
+  // ── Material quality settings ─────────────────────────────────────────────────
   useEffect(() => {
     scene.traverse((child) => {
       if (child.isMesh && child.material) {
         child.castShadow = false;
         child.receiveShadow = false;
-        // Env map handled by SceneEnv — lower intensity is fine with RoomEnvironment
-        child.material.envMapIntensity = 3.5;
+        // Rich reflections without HDR download
+        child.material.envMapIntensity = 5.0;
         if (child.material.roughness !== undefined) child.material.roughness = Math.min(child.material.roughness, 0.04);
         if (child.material.metalness !== undefined) child.material.metalness = Math.max(child.material.metalness, 0.45);
         if ('clearcoat' in child.material) { child.material.clearcoat = 1.0; child.material.clearcoatRoughness = 0.02; }
@@ -239,13 +239,13 @@ function PorscheModel() {
           if (child.material.opacity !== undefined && child.material.transparent) child.material.opacity = 0.85;
         }
 
-        // Reduce texture sizes that are over 1024px to save VRAM
+        // Sharp textures at grazing angles — anisotropy 8 is GPU-cheap but makes big visual difference
         ['map', 'normalMap', 'roughnessMap', 'metalnessMap'].forEach((key) => {
           const tex = child.material[key];
           if (tex && tex.image) {
             tex.minFilter = THREE.LinearMipmapLinearFilter;
             tex.generateMipmaps = true;
-            tex.anisotropy = 2; // lower than default 4/8
+            tex.anisotropy = 8;
           }
         });
 
@@ -483,28 +483,31 @@ const CarScene = memo(function CarScene() {
     <div className="fixed inset-0 w-full h-full z-0 pointer-events-none will-change-transform transform-gpu">
       <Canvas
         frameloop="always"
-        dpr={[0.8, 1.2]}
+        dpr={[1, 1.5]}
         camera={{ position: [0, 0.5, 6], fov: 65 }}
         gl={{
-          antialias: false,
+          antialias: true,
           alpha: true,
           powerPreference: 'high-performance',
-          precision: 'lowp',
+          precision: 'mediump',
           stencil: false,
           depth: true,
           logarithmicDepthBuffer: false,
           failIfMajorPerformanceCaveat: false,
         }}
         onCreated={({ gl }) => {
+          // Cap anisotropy to GPU max to avoid silent failures
+          gl.capabilities.getMaxAnisotropy && gl.capabilities.getMaxAnisotropy();
           gl.domElement.addEventListener('webglcontextlost', (event) => {
             event.preventDefault();
             console.warn('WebGL context lost.');
           });
         }}
       >
-        {/* Reduced lights: 2 instead of 4 */}
-        <ambientLight intensity={1.6} />
-        <directionalLight position={[4, 8, 4]} intensity={4.0} castShadow={false} />
+        {/* 3-point lighting for HD car look */}
+        <ambientLight intensity={1.2} />
+        <directionalLight position={[5, 10, 5]} intensity={3.8} castShadow={false} />
+        <directionalLight position={[-5, 4, -3]} intensity={1.8} />
 
         {/* Lightweight procedural env — no HDR download */}
         <SceneEnv />
