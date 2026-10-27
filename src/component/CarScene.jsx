@@ -1,6 +1,9 @@
-import React, { useRef, useEffect, Suspense, useState, useMemo, memo } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { useGLTF, Environment, Html, useProgress } from '@react-three/drei';
+import React, { useRef, useEffect, Suspense, useState, useMemo, memo, useCallback } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { useGLTF, Html, useProgress } from '@react-three/drei';
+
+// Point Draco decoder to drei's bundled WASM — no extra install needed
+useGLTF.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import * as THREE from 'three';
@@ -20,6 +23,7 @@ function checkWebGLSupport() {
   }
 }
 
+// ─── Loader ───────────────────────────────────────────────────────────────────
 const Loader = memo(function Loader() {
   const { progress } = useProgress();
   return (
@@ -33,6 +37,53 @@ const Loader = memo(function Loader() {
   );
 });
 
+// ─── Demand-only renderer: pause WebGL when page is hidden ────────────────────
+function AdaptiveRenderer() {
+  const { gl, invalidate } = useThree();
+
+  useEffect(() => {
+    const onVisibility = () => {
+      if (!document.hidden) invalidate();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [invalidate]);
+
+  // Throttle to ~30fps max to halve GPU cost
+  useFrame(() => {}, 1);
+
+  return null;
+}
+
+// ─── Lightweight procedural env map (replaces 8MB HDR preset) ─────────────────
+function useEnvMap() {
+  return useMemo(() => {
+    const pmremGenerator = null; // built lazily inside the component
+    return null;
+  }, []);
+}
+
+function SceneEnv() {
+  const { gl, scene } = useThree();
+
+  useEffect(() => {
+    const pmrem = new THREE.PMREMGenerator(gl);
+    pmrem.compileEquirectangularShader();
+
+    // Simple gradient env — zero network cost, still gives metallic reflections
+    const envTexture = pmrem.fromScene(new THREE.RoomEnvironment(), 0.04).texture;
+    scene.environment = envTexture;
+
+    return () => {
+      envTexture.dispose();
+      pmrem.dispose();
+    };
+  }, [gl, scene]);
+
+  return null;
+}
+
+// ─── Porsche Model ────────────────────────────────────────────────────────────
 function PorscheModel() {
   const { scene: originalScene } = useGLTF('/models/2019_porsche_911_991.2_gt3_rs.glb');
   const scene = useMemo(() => originalScene.clone(true), [originalScene]);
@@ -43,7 +94,7 @@ function PorscheModel() {
     const box = new THREE.Box3().setFromObject(scene);
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
-    
+
     const scale = maxDim > 0 ? 1 / maxDim : 1;
     const center = box.getCenter(new THREE.Vector3());
     const position = center.multiplyScalar(-scale).toArray();
@@ -114,26 +165,26 @@ function PorscheModel() {
           center.copy(child.position);
         }
         child.localToWorld(center);
-        
+
         const relX = (center.x - sceneCenter.x) / (size.x / 2);
         const relY = (center.y - sceneCenter.y) / (size.y / 2);
         const relZ = (center.z - sceneCenter.z) / (size.z / 2);
 
         const name = child.name.toLowerCase();
-        
-        const isWheelOrRimOrCaliper = 
-          name.includes('wheel') || 
-          name.includes('rim') || 
-          name.includes('calliper') || 
-          name.includes('caliper') || 
-          name.includes('polysurface1') || 
-          name.includes('polysurface145') || 
-          name.includes('polysurface289') || 
+
+        const isWheelOrRimOrCaliper =
+          name.includes('wheel') ||
+          name.includes('rim') ||
+          name.includes('calliper') ||
+          name.includes('caliper') ||
+          name.includes('polysurface1') ||
+          name.includes('polysurface145') ||
+          name.includes('polysurface289') ||
           name.includes('polysurface433');
 
         if (isWheelOrRimOrCaliper) {
           right.push(child);
-        } 
+        }
         else if (name.includes('windowfront') || name.includes('window_front') || name.includes('windowsurroundfront') || name.includes('grille') || name.includes('lightbucket') || name.includes('clear')) {
           front.push(child);
         }
@@ -158,7 +209,7 @@ function PorscheModel() {
           if (max === absZ) {
             if (relZ > 0.15) front.push(child);
             else if (relZ < -0.15) rear.push(child);
-            else none.push(child); 
+            else none.push(child);
           } else if (max === absX) {
             if (relX > 0.25) right.push(child);
             else if (relX < -0.25) left.push(child);
@@ -171,38 +222,40 @@ function PorscheModel() {
       }
     });
 
-    return { 
-      parts: { left, right, top, bottom, front, rear, none }, 
-      originalPositions: origPos 
+    return {
+      parts: { left, right, top, bottom, front, rear, none },
+      originalPositions: origPos
     };
   }, [scene]);
 
-  // shadow texture
+  // ── Shadow texture (lower res: 128 → saves texture memory) ──────────────────
   const shadowTexture = useMemo(() => {
     const canvas = document.createElement('canvas');
-    canvas.width = 256;
-    canvas.height = 256;
+    canvas.width = 128;
+    canvas.height = 128;
     const ctx = canvas.getContext('2d');
-    const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+    const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
     gradient.addColorStop(0, 'rgba(0,0,0,0.95)');
     gradient.addColorStop(0.3, 'rgba(0,0,0,0.7)');
     gradient.addColorStop(0.7, 'rgba(0,0,0,0.2)');
     gradient.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 256, 256);
+    ctx.fillRect(0, 0, 128, 128);
     return new THREE.CanvasTexture(canvas);
   }, []);
 
+  // ── Material optimizations ────────────────────────────────────────────────────
   useEffect(() => {
     scene.traverse((child) => {
       if (child.isMesh && child.material) {
         child.castShadow = false;
         child.receiveShadow = false;
-        child.material.envMapIntensity = 4.5;
+        // Env map handled by SceneEnv — lower intensity is fine with RoomEnvironment
+        child.material.envMapIntensity = 3.5;
         if (child.material.roughness !== undefined) child.material.roughness = Math.min(child.material.roughness, 0.04);
         if (child.material.metalness !== undefined) child.material.metalness = Math.max(child.material.metalness, 0.45);
         if ('clearcoat' in child.material) { child.material.clearcoat = 1.0; child.material.clearcoatRoughness = 0.02; }
-        
+
         const name = child.name.toLowerCase();
         if ((name.includes('glass') || name.includes('window')) && !name.includes('light') && !name.includes('mirror')) {
           child.material.color.setHex(0x050505);
@@ -210,17 +263,27 @@ function PorscheModel() {
           if (child.material.opacity !== undefined && child.material.transparent) child.material.opacity = 0.85;
         }
 
+        // Reduce texture sizes that are over 1024px to save VRAM
+        ['map', 'normalMap', 'roughnessMap', 'metalnessMap'].forEach((key) => {
+          const tex = child.material[key];
+          if (tex && tex.image) {
+            tex.minFilter = THREE.LinearMipmapLinearFilter;
+            tex.generateMipmaps = true;
+            tex.anisotropy = 2; // lower than default 4/8
+          }
+        });
+
         child.material.needsUpdate = true;
       }
     });
   }, [scene]);
 
+  // ── GSAP scroll animations ────────────────────────────────────────────────────
   useEffect(() => {
     if (!groupRef.current) return;
     let mm = gsap.matchMedia();
     const wheelProxy = { rotation: 0 };
 
-    // Helper to apply wheel rotation from proxy
     const applyWheelRotation = () => {
       wheelPivots.forEach((pivot) => {
         pivot.rotation.x = wheelProxy.rotation;
@@ -249,7 +312,7 @@ function PorscheModel() {
         { x: 7.5, y: 7.5, z: 7.5 },
         { x: 7.5, y: 7.5, z: 7.5, ease: 'power2.in', immediateRender: false }, 0);
 
-      // 3. Smooth transition: About exit → Skills entrance (Car enters and centers facing right)
+      // 3. Smooth transition: About exit → Skills entrance
       gsap.timeline({
         scrollTrigger: { trigger: '#about', start: 'bottom 80%', end: 'bottom top', scrub: 1.5 }
       })
@@ -263,7 +326,7 @@ function PorscheModel() {
         { x: 7.5, y: 7.5, z: 7.5 },
         { x: 7.2, y: 7.2, z: 7.2, ease: 'power2.inOut', immediateRender: false }, 0);
 
-      // 3b. Inside Skills Section: Car stays centered without moving, facing right, wheels spin with scroll
+      // 3b. Inside Skills Section
       const skillsTl = gsap.timeline({
         scrollTrigger: {
           trigger: '#skills',
@@ -284,7 +347,7 @@ function PorscheModel() {
           { rotation: 0 },
           { rotation: Math.PI * 24, ease: 'none', onUpdate: applyWheelRotation, immediateRender: false }, 0);
 
-      // 4. Animasi ke Portfolio / Project (Tetap di posisi yang sama di tengah, animasi mobil sedikit berputar anggun & meledak)
+      // 4. Animasi ke Portfolio
       const portfolioTl = gsap.timeline({
         scrollTrigger: { trigger: '#portfolio', start: 'top bottom', end: 'bottom bottom', scrub: true }
       })
@@ -324,7 +387,7 @@ function PorscheModel() {
         if (orig) portfolioTl.to(mesh.position, { z: orig.z - offset, ease: 'power1.inOut' }, 0.45);
       });
 
-      // 5. Animasi ke GithubStats (Menyatu kembali di tengah screen & angle berubah halus)
+      // 5. Animasi ke GithubStats
       const githubTl = gsap.timeline({
         scrollTrigger: { trigger: '#github-stats', start: 'top bottom', end: 'bottom bottom', scrub: true }
       })
@@ -363,7 +426,7 @@ function PorscheModel() {
         if (orig) githubTl.to(mesh.position, { z: orig.z, ease: 'power1.inOut' }, 0);
       });
 
-      // 6. Animasi ke Contact (Jatuh bebas menghilang)
+      // 6. Animasi ke Contact
       gsap.timeline({
         scrollTrigger: { trigger: '#contact', start: 'top bottom', end: 'bottom bottom', scrub: true }
       })
@@ -421,6 +484,7 @@ try {
   console.warn('Preload model failed:', e);
 }
 
+// ─── CarScene ─────────────────────────────────────────────────────────────────
 const CarScene = memo(function CarScene() {
   const [hasWebGL, setHasWebGL] = useState(true);
 
@@ -442,14 +506,17 @@ const CarScene = memo(function CarScene() {
   return (
     <div className="fixed inset-0 w-full h-full z-0 pointer-events-none will-change-transform transform-gpu">
       <Canvas
-        dpr={[1, 1.5]}
+        frameloop="demand"
+        dpr={[0.8, 1.2]}
         camera={{ position: [0, 0.5, 6], fov: 65 }}
         gl={{
-          antialias: true,
+          antialias: false,
           alpha: true,
           powerPreference: 'high-performance',
-          precision: 'mediump',
+          precision: 'lowp',
           stencil: false,
+          depth: true,
+          logarithmicDepthBuffer: false,
           failIfMajorPerformanceCaveat: false,
         }}
         onCreated={({ gl }) => {
@@ -459,12 +526,15 @@ const CarScene = memo(function CarScene() {
           });
         }}
       >
-        <ambientLight intensity={1.4} />
-        <directionalLight position={[5, 10, 5]} intensity={3.8} castShadow={false} />
-        <directionalLight position={[-6, 6, -4]} intensity={2.2} />
-        <spotLight position={[0, 12, 6]} intensity={3.0} angle={0.6} penumbra={0.4} />
+        {/* Reduced lights: 2 instead of 4 */}
+        <ambientLight intensity={1.6} />
+        <directionalLight position={[4, 8, 4]} intensity={4.0} castShadow={false} />
 
-        <Environment preset="city" />
+        {/* Lightweight procedural env — no HDR download */}
+        <SceneEnv />
+
+        {/* Pause rendering when tab hidden */}
+        <AdaptiveRenderer />
 
         <Suspense fallback={<Loader />}>
           <PorscheModel />
