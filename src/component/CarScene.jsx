@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, Suspense, useState, useMemo, memo, useCallback } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import React, { useRef, useEffect, Suspense, useState, useMemo, memo } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
 import { useGLTF, Html, useProgress } from '@react-three/drei';
 
 // Point Draco decoder to drei's bundled WASM — no extra install needed
@@ -7,6 +7,7 @@ useGLTF.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/'
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -37,41 +38,16 @@ const Loader = memo(function Loader() {
   );
 });
 
-// ─── Demand-only renderer: pause WebGL when page is hidden ────────────────────
-function AdaptiveRenderer() {
-  const { gl, invalidate } = useThree();
-
-  useEffect(() => {
-    const onVisibility = () => {
-      if (!document.hidden) invalidate();
-    };
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => document.removeEventListener('visibilitychange', onVisibility);
-  }, [invalidate]);
-
-  // Throttle to ~30fps max to halve GPU cost
-  useFrame(() => {}, 1);
-
-  return null;
-}
-
 // ─── Lightweight procedural env map (replaces 8MB HDR preset) ─────────────────
-function useEnvMap() {
-  return useMemo(() => {
-    const pmremGenerator = null; // built lazily inside the component
-    return null;
-  }, []);
-}
-
 function SceneEnv() {
   const { gl, scene } = useThree();
 
   useEffect(() => {
-    const pmrem = new THREE.PMREMGenerator(gl);
+    const pmrem = new THREE.PMREMGenerator(gl);  // RoomEnvironment: zero network cost
     pmrem.compileEquirectangularShader();
 
-    // Simple gradient env — zero network cost, still gives metallic reflections
-    const envTexture = pmrem.fromScene(new THREE.RoomEnvironment(), 0.04).texture;
+    // Simple procedural env — zero network cost, still gives metallic reflections
+    const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
     scene.environment = envTexture;
 
     return () => {
@@ -506,7 +482,7 @@ const CarScene = memo(function CarScene() {
   return (
     <div className="fixed inset-0 w-full h-full z-0 pointer-events-none will-change-transform transform-gpu">
       <Canvas
-        frameloop="demand"
+        frameloop="always"
         dpr={[0.8, 1.2]}
         camera={{ position: [0, 0.5, 6], fov: 65 }}
         gl={{
@@ -532,9 +508,6 @@ const CarScene = memo(function CarScene() {
 
         {/* Lightweight procedural env — no HDR download */}
         <SceneEnv />
-
-        {/* Pause rendering when tab hidden */}
-        <AdaptiveRenderer />
 
         <Suspense fallback={<Loader />}>
           <PorscheModel />
