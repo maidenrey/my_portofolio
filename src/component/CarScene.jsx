@@ -47,7 +47,7 @@ function SceneEnv() {
     pmrem.compileEquirectangularShader();
 
     // Simple procedural env — zero network cost, still gives metallic reflections
-    const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    const envTexture = pmrem.fromScene(new RoomEnvironment(), 0).texture; // 0 = no blur → sharper reflections
     scene.environment = envTexture;
 
     return () => {
@@ -483,7 +483,7 @@ const CarScene = memo(function CarScene() {
     <div className="fixed inset-0 w-full h-full z-0 pointer-events-none will-change-transform transform-gpu">
       <Canvas
         frameloop="always"
-        dpr={[1, 1.5]}
+        dpr={[1, 2]}
         camera={{ position: [0, 0.5, 6], fov: 65 }}
         gl={{
           antialias: true,
